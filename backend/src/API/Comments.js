@@ -3,7 +3,8 @@ const router = Router();
 const {
   createComment,
   editComment,
-  getComments
+  getComments,
+  deleteComment
 } = require("../Controllers/CommentController");
 router.route("/");
 
@@ -11,6 +12,8 @@ router.get("/getComments/:idPost", getComments)
 
 router.post("/create", createComment);
 
-router.patch("/edit", editComment)
+router.put("/edit", editComment)
+
+router.put("/delete", deleteComment)
 
 module.exports = router;

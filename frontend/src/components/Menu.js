@@ -1,19 +1,18 @@
-import React from 'react';
+import React, {useState} from 'react';
 import IconButton from '@material-ui/core/IconButton';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
-
-const options = [
-  'Profile',
-  'My post'
-];
+import {useHistory} from "react-router-dom";
 
 const ITEM_HEIGHT = 48;
 
+const URL_BASE = process.env.REACT_APP_URL_BASE;
 export default function LongMenu() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
+  const userId = localStorage.getItem('user_id')
+  let history = useHistory()
 
   const handleClick = event => {
     setAnchorEl(event.currentTarget);
@@ -22,6 +21,18 @@ export default function LongMenu() {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  const getMyPosts = () => {
+    history.push(`/posts/user/${userId}`)
+    handleClose()
+  }
+  const logOut = () => {
+    localStorage.removeItem('user_id')
+    localStorage.removeItem('admin')
+    localStorage.removeItem('name')
+    localStorage.removeItem('token')
+    history.push('/login')
+    handleClose()
+  }
 
   return (
     <div>
@@ -47,11 +58,13 @@ export default function LongMenu() {
           },
         }}
       >
-        {options.map(option => (
+        <MenuItem key={userId} onClick={getMyPosts}>My posts</MenuItem>
+        <MenuItem onClick={logOut}>Logout</MenuItem>
+        {/* {options.map(option => (
           <MenuItem key={option} selected={option === 'Pyxis'} onClick={handleClose}>
             {option}
           </MenuItem>
-        ))}
+        ))} */}
       </Menu>
     </div>
   );

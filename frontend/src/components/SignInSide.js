@@ -11,6 +11,12 @@ import Box from "@material-ui/core/Box";
 import Grid from "@material-ui/core/Grid";
 import LockOutlinedIcon from "@material-ui/icons/LockOutlined";
 import Typography from "@material-ui/core/Typography";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Redirect,
+} from "react-router-dom";
 
 import MessageAlert from "./MessageAlert";
 
@@ -21,7 +27,7 @@ function Copyright() {
     <Typography variant="body2" color="textSecondary" align="center">
       {"Copyright © "}
       <Link color="inherit" href="https://material-ui.com/">
-        Forum
+        DEVS FORUM
       </Link>{" "}
       {new Date().getFullYear()}
       {"."}
@@ -29,9 +35,9 @@ function Copyright() {
   );
 }
 
-const styles = theme => ({
+const styles = (theme) => ({
   root: {
-    height: "100vh"
+    height: "100vh",
   },
   image: {
     backgroundImage: "url(https://source.unsplash.com/random)",
@@ -41,43 +47,83 @@ const styles = theme => ({
         ? theme.palette.grey[900]
         : theme.palette.grey[50],
     backgroundSize: "cover",
-    backgroundPosition: "center"
+    backgroundPosition: "center",
   },
   paper: {
     margin: theme.spacing(8, 4),
     display: "flex",
     flexDirection: "column",
-    alignItems: "center"
+    alignItems: "center",
   },
   avatar: {
     margin: theme.spacing(1),
-    backgroundColor: theme.palette.secondary.main
+    backgroundColor: theme.palette.secondary.main,
   },
   form: {
     width: "100%", // Fix IE 11 issue.
-    marginTop: theme.spacing(1)
+    marginTop: theme.spacing(1),
   },
   submit: {
-    margin: theme.spacing(3, 0, 2)
-  }
+    margin: theme.spacing(3, 0, 2),
+  },
 });
-
+const URL_BASE = process.env.REACT_APP_URL_BASE;
 class SignInSide extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showError: false
+      URL_BASE: URL_BASE,
+      showError: false,
+      badCredentials: false,
     };
   }
-  handleForm = e => {
+
+  getRole = (role) => {
+    if (role == "admin") return true;
+    return false;
+  };
+
+  sendCredentials = async (body) => {
+    const url = `${this.state.URL_BASE}/login`;
+    const headers = {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    };
+    const res = await fetch(url, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      const role = this.getRole(data.role);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("admin", role);
+      localStorage.setItem("user_id", data.user_id);
+      localStorage.setItem("name", data.user_name);
+      // Redirect success
+      this.props.history.push("/");
+    } else {
+      this.setState({ badCredentials: true, authMessage: data.message });
+    }
+  };
+  handleForm = (e) => {
     e.preventDefault();
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
     if (!email || !password) {
       this.setState({ showError: true });
-    }else{
-      // Hacer peticion ajax, comprobar con la api y redirect 
+    } else {
+      this.sendCredentials({ email, password });
+    }
+  };
+  componentDidMount = () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      this.props.history.push("/");
+      return;
     }
   };
 
@@ -95,10 +141,18 @@ class SignInSide extends Component {
             <Typography component="h1" variant="h5">
               Sign in
             </Typography>
-            {this.showError && (
+            {this.state.showError && (
               <MessageAlert
                 type="error"
                 message="Email or password are not valid"
+                open={true}
+              />
+            )}
+            {this.state.badCredentials && (
+              <MessageAlert
+                type="error"
+                message={this.state.authMessage}
+                open={true}
               />
             )}
             <form
@@ -142,13 +196,9 @@ class SignInSide extends Component {
                 Sign In
               </Button>
               <Grid container>
-                <Grid item xs>
-                  <Link href="#" variant="body2">
-                    Forgot password?
-                  </Link>
-                </Grid>
+
                 <Grid item>
-                  <Link href="#" variant="body2">
+                  <Link href="/register" variant="body2">
                     {"Don't have an account? Sign Up"}
                   </Link>
                 </Grid>
@@ -165,4 +215,3 @@ class SignInSide extends Component {
 }
 
 export default withStyles(styles)(SignInSide);
-

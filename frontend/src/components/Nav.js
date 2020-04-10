@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Tabs from "@material-ui/core/Tabs";
@@ -11,6 +11,7 @@ import IconButton from "@material-ui/core/IconButton";
 import InputBase from "@material-ui/core/InputBase";
 
 import LongMenu from "./Menu";
+import { BrowserRouter as Router, Switch, Route, Link, useHistory } from "react-router-dom";
 // import { Visibility } from '@material-ui/icons';
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -32,34 +33,48 @@ function TabPanel(props) {
 function a11yProps(index) {
   return {
     id: `simple-tab-${index}`,
-    "aria-controls": `simple-tabpanel-${index}`
+    "aria-controls": `simple-tabpanel-${index}`,
   };
 }
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
-    backgroundColor: theme.palette.background.paper
+    backgroundColor: theme.palette.background.paper,
   },
   input: {
     marginLeft: theme.spacing(1),
     flex: 1,
-    color: "white"
+    color: "white",
   },
   iconButton: {
     padding: 10,
-    color: "white"
-  }
+    color: "white",
+  },
+  link: {
+    "&:hover": {
+      textDecoration: "none",
+    },
+  },
 }));
 
 export default function SimpleTabs() {
   const classes = useStyles();
   const [value, setValue] = React.useState(0);
-  // console.log(value)
+  const [searchValue, setInputValue] = useState("");
+  let history = useHistory()
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
+
+  const doSearch = () => {
+    history.push({
+      pathname: '/search',
+      search: `q=${searchValue}`
+    })
+  };
+
   const searchInput = () => {
     return (
       <Box
@@ -71,6 +86,10 @@ export default function SimpleTabs() {
           className={classes.input}
           placeholder="Search posts"
           inputProps={{ "aria-label": "search google maps" }}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key == "Enter") doSearch();
+          }}
         />
         <IconButton
           type="submit"
@@ -85,13 +104,7 @@ export default function SimpleTabs() {
 
   const logo = () => {
     return (
-      <figure style={{ width: "60px", margin: "0" }}>
-        <img
-          src="https://www.pngitem.com/pimgs/m/41-414399_grumpy-cat-pixel-grumpy-cat-cross-stitch-hd.png"
-          alt=""
-          width="100%"
-        />
-      </figure>
+      <div>logo</div>
     );
   };
 
@@ -115,9 +128,14 @@ export default function SimpleTabs() {
             {...a11yProps(0)}
             style={{ minWidth: "auto", padding: "2px" }}
           />
-          <Tab label="posts" {...a11yProps(0)} />
-          <Tab label="create" {...a11yProps(1)} />
-          <Tab label="Item Three" {...a11yProps(2)} />
+          <Tab label="posts" to="/" component={Link} className={classes.link} />
+          <Tab
+            label="create"
+            to="/create"
+            component={Link}
+            className={classes.link}
+          />
+          {/* <Tab label="Item Three" {...a11yProps(2)} /> */}
           <Tab
             label={searchInput()}
             // disabled="true"
@@ -129,24 +147,12 @@ export default function SimpleTabs() {
             style={{
               minWidth: "auto",
               transform: "scale(1.1)",
-              marginRight: "15px"
+              marginRight: "15px",
             }}
             // onClick={handleProfile}
           />
         </Tabs>
       </AppBar>
-      <TabPanel value={value} index={0}>
-        posts
-      </TabPanel>
-      <TabPanel value={value} index={1}>
-        create
-      </TabPanel>
-      <TabPanel value={value} index={2}>
-        Item Three
-      </TabPanel>
-      <TabPanel value={value} index={3}>
-        profile
-      </TabPanel>
     </div>
   );
 }
